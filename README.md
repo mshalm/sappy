@@ -1,1 +1,1 @@
-# SAP Solver in Eigen
+# Python-bound SAP Solver in Eigen
