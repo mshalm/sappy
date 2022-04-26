@@ -15,6 +15,11 @@ class Solver
     double project_lorentz_half_squared(VectorXd &vector);
     void root_hess_project_lorentz_half_squared(VectorXd &vector, MatrixXd &root_hess);
     std::tuple<VectorXd,VectorXd> solve(const py::EigenDRef<const MatrixXd> &J, const py::EigenDRef<const VectorXd> &q, double eps);
+    std::tuple<MatrixXd,VectorXd> gradient(const py::EigenDRef<const MatrixXd> &J,
+                                           const py::EigenDRef<const VectorXd> &q,
+                                           const py::EigenDRef<const VectorXd> &l_sol,
+                                           const py::EigenDRef<const VectorXd> &v_sol,
+                                           const py::EigenDRef<const VectorXd> &backwards_grad, double eps);
 
     private:
     // solver instance size
@@ -32,12 +37,18 @@ class Solver
     MatrixXd hess_projection;
     MatrixXd root_hess_projection;
     MatrixXd J_t_root_hess;
+    MatrixXd J_t_hess;
+    Matrix3d hess_block;
     VectorXd dv;
     VectorXd v_alpha;
     VectorXd y_alpha;
     LDLT<MatrixXd> hess_chol;
     VectorXd lt;
     VectorXd lt_hat;
+    VectorXd R;
+    VectorXd backwards_grad_times_hessian;
+    VectorXd grad_q;
+    MatrixXd grad_J;
 
     // projection workspace
     int idx;

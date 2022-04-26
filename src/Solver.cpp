@@ -15,6 +15,7 @@ namespace py = pybind11;
 
 using std::abs;
 using std::sqrt;
+using std::max;
 
 
 #define contact_index(i) 3*i
@@ -40,19 +41,24 @@ Solver::Solver(int NC, int NV){
     hess_projection = MatrixXd::Zero(NL, NL);
     root_hess_projection = MatrixXd::Zero(NL, 3);
     J_t_root_hess = MatrixXd::Zero(NV, NL);
+    J_t_hess = MatrixXd::Zero(NV, NL);
     dv = VectorXd::Zero(NV);
     v_alpha = VectorXd::Zero(NV);
     y_alpha = VectorXd::Zero(NC);
     LDLT<MatrixXd> hess_chol(NV);
     lt = VectorXd::Zero(2);
     lt_hat = VectorXd::Zero(2);
+    R = VectorXd::Zero(NV);
+    backwards_grad_times_hessian = VectorXd::Zero(NL);
+    grad_q = VectorXd::Zero(NL);
+    grad_J = MatrixXd::Zero(NL, NV);
 
     // set default solver settings
     max_iterations = 100;
-    grad_abs_tolerance = 1.e-10;
-    grad_rel_tolerance = 2.e-6; 
-    cost_abs_tolerance = 1.e-10;
-    cost_rel_tolerance = 1.e-6;
+    grad_abs_tolerance = 1e-14;
+    grad_rel_tolerance = 1e-6; 
+    cost_abs_tolerance = 1e-30;
+    cost_rel_tolerance = 1e-15;
 
     rho = 0.8;
     c = 1e-4;
@@ -184,7 +190,7 @@ std::tuple<VectorXd,VectorXd> Solver::solve(const py::EigenDRef<const MatrixXd> 
         grad_loss = v - J_t_l;
 
         // inspect primal optimality for termination
-        momentum_stop = grad_loss.norm() < grad_abs_tolerance + grad_rel_tolerance * (v.norm() + J_t_l.norm());
+        momentum_stop = grad_loss.norm() < grad_abs_tolerance + grad_rel_tolerance * std::max(v.norm(), J_t_l.norm());
 
         // possible termination
         if (momentum_stop || decrement_stop) {
@@ -250,4 +256,39 @@ std::tuple<VectorXd,VectorXd> Solver::solve(const py::EigenDRef<const MatrixXd> 
     }
     
     return std::make_tuple(l,v);
+}
+
+std::tuple<MatrixXd,VectorXd> Solver::gradient(const py::EigenDRef<const MatrixXd> &J,
+                                               const py::EigenDRef<const VectorXd> &q,
+                                               const py::EigenDRef<const VectorXd> &l_sol,
+                                               const py::EigenDRef<const VectorXd> &v_sol,
+                                               const py::EigenDRef<const VectorXd> &backwards_grad, double eps)
+{
+    l = l_sol;
+    v = v_sol;
+
+    // calculate objective hessian and related terms
+    y = y_of_v(J,v,q,eps);
+    root_hess_project_lorentz_half_squared(y, root_hess_projection);
+    J_t_hess = J.transpose();
+    backwards_grad_times_hessian = backwards_grad;
+    for (int c = 0; c < _NL; c += 3)
+    {   
+        hess_block = root_hess_projection.block<3,3>(c,0) * root_hess_projection.block<3,3>(c,0).transpose();
+        J_t_hess.middleCols<3>(c) *= hess_block;
+        backwards_grad_times_hessian.segment<3>(c) = hess_block * backwards_grad_times_hessian.segment<3>(c);
+    }
+    hess_loss.triangularView<Upper>() = J_t_hess * J / eps;
+    hess_loss.diagonal().array() += 1.;
+    hess_chol.compute(hess_loss.selfadjointView<Upper>());
+
+
+    // calculate intermediate term
+    R = J_t_hess * backwards_grad / eps;
+    hess_chol.solveInPlace(R);
+
+    grad_q = -(backwards_grad_times_hessian - J_t_hess.transpose() * R)/eps;
+    grad_J = grad_q * v.transpose() - l * R.transpose();
+
+    return std::make_tuple(grad_J, grad_q);
 }

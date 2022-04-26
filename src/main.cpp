@@ -20,6 +20,13 @@ PYBIND11_MODULE(sappy_solver, m) {
     m.doc() = "Python bindings for C++/Eigen QCQP solver, implmented in primal coordinates via the SAP solver developed by Alejandro Castro et al. at TRI.";
     py::class_<Solver>(m, "Solver")
         .def(py::init<int,int>())
-        .def("solve", &Solver::solve, "Solve SAP for given problem parameters.",py::arg("J"), py::arg("q"), py::arg("eps"));
+        .def("solve",
+             &Solver::solve,
+             "Solve SAP for given problem parameters.",
+             py::arg("J"), py::arg("q"), py::arg("eps"))
+        .def("gradient",
+             &Solver::gradient,
+             "Derive SAP for given parameters and solution.",
+             py::arg("J"), py::arg("q"), py::arg("l"), py::arg("v"), py::arg("backwards_grad"), py::arg("eps"));
 
 }
