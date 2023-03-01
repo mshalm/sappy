@@ -163,6 +163,7 @@ static double getTime(std::chrono::high_resolution_clock::time_point* t = nullpt
 
 std::tuple<VectorXd,VectorXd> Solver::solve(const py::EigenDRef<const MatrixXd> &J, const py::EigenDRef<const VectorXd> &q, double eps) {
 
+    v.setZero();
     loss = 0.;
     alpha = 0.;
     alpha_prev = 0.;
