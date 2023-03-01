@@ -1,6 +1,6 @@
-# Python-bound SAP Solver in Eigen
+# Python-bound SAP Solver
 ## Overview
-PyTorch/C++/Eigen implementation of a solver for strictly convex Lorentz cone-constrained Quadratic Programs (LCQP's), equivalent to strongly monotone Second Order Linear Complementarity Problems (SOLCP's), based on Alejandro Castro et al.'s [Semi-Analytic Primal Solver](https://arxiv.org/pdf/2110.10107.pdf), developed by Toyota Research Institute.
+PyTorch implementation (via Eigen/C++ bindings) of a solver for strictly convex Lorentz cone-constrained Quadratic Programs (LCQP's), equivalent to strongly monotone Second Order Linear Complementarity Problems (SOLCP's), based on Alejandro Castro et al.'s [Semi-Analytic Primal Solver](https://arxiv.org/pdf/2110.10107.pdf), developed by Toyota Research Institute.
 ## Interface
 Problems are sovled with decision variables $l = [l_{x_1},l_{y_1},l_{y_1},\dots, l_{x_k},l_{y_k},l_{y_k}] \in \mathbb R^{3k}$, which must lie in the Lorentz ("ice cream") cone:
 ```math
