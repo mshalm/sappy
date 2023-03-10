@@ -1,4 +1,4 @@
-# Python-bound Differentiable SAP Solver
+# PyTorch solver for Lorentz Cone-Constrained Quadratic Programs
 ## Overview
 PyTorch implementation (via Eigen/C++ bindings) of a solver for strictly convex Lorentz cone-constrained Quadratic Programs (LCQP's), equivalent to strongly monotone Second Order Linear Complementarity Problems (SOLCP's), based on Alejandro Castro et al.'s [Semi-Analytic Primal Solver](https://arxiv.org/pdf/2110.10107.pdf), developed by Toyota Research Institute.
 ## Interface
