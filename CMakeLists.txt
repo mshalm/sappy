@@ -4,7 +4,7 @@ if (APPLE)
 set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
 endif()
 add_subdirectory(pybind11)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/eigen/cmake")
+list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_LIST_DIR}/eigen/cmake")
 find_package(Eigen3 3.3.3 REQUIRED)
 set(SOURCE_DIR "src")
 
